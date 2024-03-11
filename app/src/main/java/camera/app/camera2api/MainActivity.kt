@@ -3,9 +3,12 @@ package camera.app.camera2api
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.pm.PackageManager
+import android.content.res.Configuration
 import android.graphics.ImageFormat
+import android.graphics.Matrix
 import android.graphics.SurfaceTexture
 import android.hardware.camera2.CameraCaptureSession
+import android.hardware.camera2.CameraCharacteristics
 import android.hardware.camera2.CameraDevice
 import android.hardware.camera2.CameraManager
 import android.hardware.camera2.CaptureRequest
@@ -16,6 +19,9 @@ import android.os.Environment
 import android.os.Handler
 import android.os.HandlerThread
 import android.util.Log
+import android.util.Range
+import android.util.Size
+import android.util.TypedValue
 import android.view.Surface
 import android.view.TextureView
 import android.widget.Toast
@@ -58,6 +64,8 @@ class MainActivity : AppCompatActivity() {
         startThread()
         binding.texture.surfaceTextureListener = surfaceListener
 
+
+
         imageReader = ImageReader.newInstance(1080, 1920, ImageFormat.JPEG, 1)
         imageReader.setOnImageAvailableListener({ it ->
             val image = it.acquireLatestImage()
@@ -99,9 +107,15 @@ class MainActivity : AppCompatActivity() {
     /*step 7 open camera*/
     @SuppressLint("MissingPermission")
     fun openCamera() {
+
+        val cameraId = cameraManager.cameraIdList[0] // Assuming you're using the first camera
+        val characteristics = cameraManager.getCameraCharacteristics(cameraId)
+        val previewSize = getPreviewSize(characteristics)
+        adjustTextureViewSize(previewSize)
+
         cameraManager.openCamera(
 //            getCameraId()!!,
-            cameraManager.cameraIdList[1],
+            cameraManager.cameraIdList[0],
             object : CameraDevice.StateCallback() {
                 override fun onOpened(p0: CameraDevice) {
                     cameraDevice = p0
@@ -283,4 +297,38 @@ class MainActivity : AppCompatActivity() {
         handler.removeCallbacksAndMessages(null)
         handlerThread.quitSafely()
     }
+
+    private fun adjustTextureViewSize(previewSize: Size) {
+        val isLandscape = resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+        val viewWidth = if (isLandscape) binding.texture.width else binding.texture.height
+        val viewHeight = if (isLandscape) binding.texture.height else binding.texture.width
+
+        val viewAspectRatio = viewWidth.toFloat() / viewHeight
+        val previewAspectRatio = previewSize.width.toFloat() / previewSize.height
+
+        if (previewAspectRatio > viewAspectRatio) {
+            // Preview is wider than the view, adjust height to match preview
+            val newHeight = (viewWidth / previewAspectRatio).toInt()
+            binding.texture.layoutParams.height = newHeight
+        } else {
+            // Preview is taller than the view, adjust width to match preview
+            val newWidth = (viewHeight * previewAspectRatio).toInt()
+            binding.texture.layoutParams.width = newWidth
+        }
+
+        binding.texture.requestLayout()
+    }
+
+
+
+    private fun getPreviewSize(characteristics: CameraCharacteristics): Size {
+        val map = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP)
+        // Assuming you want to choose the largest preview size
+        val previewSizes = map?.getOutputSizes(SurfaceTexture::class.java)
+        // Sort the preview sizes based on their area
+        previewSizes?.sortByDescending { it.width * it.height }
+        // Return the largest preview size
+        return previewSizes?.get(0) ?: Size(0, 0)
+    }
+
 }
