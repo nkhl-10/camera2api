@@ -1,39 +1,40 @@
 package camera.app.camera2api
 
-import android.annotation.SuppressLint
-import android.content.Context
-import android.content.pm.PackageManager
-import android.content.res.Configuration
-import android.graphics.ImageFormat
-import android.graphics.Matrix
-import android.graphics.SurfaceTexture
-import android.hardware.camera2.CameraCaptureSession
-import android.hardware.camera2.CameraCharacteristics
-import android.hardware.camera2.CameraDevice
-import android.hardware.camera2.CameraManager
-import android.hardware.camera2.CaptureRequest
-import android.media.ImageReader
-import android.media.MediaRecorder
 import android.os.Bundle
-import android.os.Environment
-import android.os.Handler
-import android.os.HandlerThread
-import android.util.Log
-import android.util.Range
-import android.util.Size
-import android.util.TypedValue
-import android.view.Surface
-import android.view.TextureView
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import camera.app.camera2api.databinding.ActivityMainBinding
-import java.io.File
-import java.io.FileOutputStream
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
+
+class MainActivity :AppCompatActivity(){
+
+    private lateinit var binding: ActivityMainBinding
+
+    private lateinit var cameraViewModel: MainVM
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+        cameraViewModel=MainVM(this)
+        cameraViewModel.setPreviewSurface(binding.texture)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        cameraViewModel.startBackgroundThread()
+        cameraViewModel.openCamera()
+        cameraViewModel.setPreviewSurface(binding.texture)
+    }
+
+    override fun onPause() {
+        super.onPause()
+        cameraViewModel.stopBackgroundThread()
+    }
+}
 
 
+
+
+/*
 class MainActivity : AppCompatActivity() {
 
     lateinit var handler: Handler
@@ -58,7 +59,9 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
 
 
-        /*step 4 check permission and camera manager */
+        */
+/*step 4 check permission and camera manager *//*
+
         getPermission()
         cameraManager = getSystemService(Context.CAMERA_SERVICE) as CameraManager
         startThread()
@@ -104,7 +107,9 @@ class MainActivity : AppCompatActivity() {
     }
 
 
-    /*step 7 open camera*/
+    */
+/*step 7 open camera*//*
+
     @SuppressLint("MissingPermission")
     fun openCamera() {
 
@@ -162,7 +167,9 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
-    /*step 6 surfaceListener */
+    */
+/*step 6 surfaceListener *//*
+
     private var surfaceListener = object : TextureView.SurfaceTextureListener {
         override fun onSurfaceTextureAvailable(p0: SurfaceTexture, p1: Int, p2: Int) {
             openCamera()
@@ -178,14 +185,18 @@ class MainActivity : AppCompatActivity() {
 
     }
 
-    /** step 5 start Thread*/
+    */
+/** step 5 start Thread*//*
+
     private fun startThread() {
         handlerThread = HandlerThread("name")
         handlerThread.start()
         handler = Handler((handlerThread).looper)
     }
 
-    /** step 2 Get Permission */
+    */
+/** step 2 Get Permission *//*
+
     private fun getPermission() {
         val permission = mutableListOf<String>()
         if (checkSelfPermission(android.Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) permission.add(
@@ -331,4 +342,4 @@ class MainActivity : AppCompatActivity() {
         return previewSizes?.get(0) ?: Size(0, 0)
     }
 
-}
+}*/
